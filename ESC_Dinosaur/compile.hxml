@@ -1,0 +1,8 @@
+-cp src
+-lib heaps
+-lib eventbeacon
+-js hello.js
+#-lib hlsdl
+#-hl run.hl
+-main Main
+-debug
