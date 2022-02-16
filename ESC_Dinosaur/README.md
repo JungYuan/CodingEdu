@@ -2,7 +2,7 @@
 
 # Heaps.io Basecode
 
-This is a base code for heaps.io that I used in a series of tutorials:
+This is a base code for heaps.io that I used in a series of tutorials and modufied some codes:
 youtube.com/c/theboywhomakesgames
 
 It is currently subject to huge changes for the new series of tutorials.
