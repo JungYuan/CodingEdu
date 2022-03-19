@@ -71,11 +71,12 @@ class Main extends hxd.App {
 		beCollider.colliderEvents.funcList.add(gamegg);
 	}
 
-	private function generateGround(px:Float) {
+	private function generateGround(px:Float, py:Float) {
 		var newgroundtile:h2d.Tile = groundTiles[Std.random(100) % 2];
-		var newGround:GameObject = new GameObject(s2d, px, ground);
+		var newGround:GameObject = new GameObject(s2d, px, ground+py);
 		new Sprite(newGround, newgroundtile, true);
-		new RigidBody(newGround, -800, 0, false);
+		//new RigidBody(newGround, -800, 0, false);
+		new RigidBody(newGround, 0, 0, false);
 	}
 
 	private function initGround() {
@@ -84,8 +85,12 @@ class Main extends hxd.App {
 		ground = s2d.height * 0.75;
 		var gx:Float = 0;
 		while (gx <= s2d.width) {
-			generateGround(gx);
+			generateGround(gx, 0);
+			if (gx > 1200 && gx < 2000){
+				generateGround(gx, -150);
+			}
 			gx = gx + dist;
+			
 		}
 	}
 
@@ -102,11 +107,11 @@ class Main extends hxd.App {
 
 	override function update(dt:Float) {
 		if (gameRun) {
-			groundcount += 1;
-			if (groundcount > 6) {
-				generateGround(s2d.width);
-				groundcount = 0;
-			}
+			//groundcount += 1;
+			//if (groundcount > 6) {
+			//	generateGround(s2d.width);
+			//	groundcount = 0;
+			//}
 			timer1 += dt;
 			ColliderSystem.CheckCollide();
 			for (obj in UpdateList) {
@@ -119,21 +124,39 @@ class Main extends hxd.App {
 				onJumping = 0;
 			}
 			dinosaur.obj.rotation = dinosaurRB.velocity.y * 0.01 * 0.02;
-			if (timer1 > generateTime) {
-				generateTree();
-				timer1 = 0.0;
-				generateTime = Std.random(100) * 0.02 + 1;
-			}
+			//if (timer1 > generateTime) {
+			//	generateTree();
+			//	timer1 = 0.0;
+			//	generateTime = Std.random(100) * 0.02 + 1;
+			//}
 		}
 	}
 
 	public function interpretEvent(event:hxd.Event) {
+		trace(event.kind);
 		switch (event.kind) {
 			case EKeyDown:
-				onMouseClick(event);
+				onKeyDown(event);
 			case EPush:
 				onMouseClick(event);
+			case EKeyUp:
+				dinosaurRB.velocity.x = 0;
+				
 			case _:
+		}
+	}
+
+	public function onKeyDown(event:hxd.Event) {
+		if (event.keyCode == Key.RIGHT){
+			trace('right');
+			dinosaurRB.velocity.x = 500;
+		}
+		if (event.keyCode == (Key.LEFT)){
+			trace('left');
+			dinosaurRB.velocity.x = -500;
+		}
+		if (event.keyCode == (Key.SPACE)){
+			onMouseClick(event);
 		}
 	}
 
