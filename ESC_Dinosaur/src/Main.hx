@@ -16,6 +16,7 @@ class Main extends hxd.App {
 
 	var dinosaur:GameObject;
 	var dinosaurRB:RigidBody;
+	var dinosaurCD:Collider;
 	var dinosaurAnim:AnimationSprite;
 	var dinosaurRun:Array<h2d.Tile>;
 	var dinosaurJump:Array<h2d.Tile>;
@@ -54,40 +55,47 @@ class Main extends hxd.App {
 		dinosaurRB = new RigidBody(dinosaur, 0, -1000, true);
 		var radV = (Math.abs(dinosaurRun[0].x) + Math.abs(dinosaurRun[0].y)) / 2;
 		// new CircleCollider(dinosaur, new Vector2(0,0), radV);
-		new BoxCollider(dinosaur, new Vector2(0, 0), Math.abs(dinosaurRun[0].x), Math.abs(dinosaurRun[0].y));
+		dinosaurCD = new BoxCollider(dinosaur, new Vector2(0, 0), Math.abs(dinosaurRun[0].x), Math.abs(dinosaurRun[0].y));
 	}
 
-	private function generateTree() {
+	private function generateTree(px:Float=0, py:Float=0, treespeed:Float=-800) {
 		var newtreetile:h2d.Tile = treetile[Std.random(100) % 3];
 		newtreetile.dx = newtreetile.width / -2;
 		newtreetile.dy = newtreetile.height / -2;
-		var newTree:GameObject = new GameObject(s2d, s2d.width - newtreetile.width, ground);
+		if (px == 0 && py == 0){
+			px = s2d.width - newtreetile.width;
+			py = ground;
+		}
+		var newTree:GameObject = new GameObject(s2d, px, py);
 		new Sprite(newTree, newtreetile, true);
-		new RigidBody(newTree, -800, 0, false);
+		new RigidBody(newTree, treespeed, 0, false);
 		var radV = (Math.abs(newtreetile.dx) + Math.abs(newtreetile.dy)) / 2;
 		// var beCollider:Collider = new CircleCollider(newTree, new Vector2(0, 0), radV);
-		var beCollider:Collider = new BoxCollider(newTree, new Vector2(0, 0), newtreetile.width, newtreetile.height);
-		beCollider.isTrigger = true;
-		beCollider.colliderEvents.funcList.add(gamegg);
+		//var beCollider:Collider = new BoxCollider(newTree, new Vector2(0, 0), newtreetile.width, newtreetile.height);
+		//beCollider.isTrigger = true;
+		//beCollider.colliderEvents.funcList.add(gamegg);
 	}
 
 	private function generateGround(px:Float, py:Float) {
 		var newgroundtile:h2d.Tile = groundTiles[Std.random(100) % 2];
-		var newGround:GameObject = new GameObject(s2d, px, ground+py);
+		var newGround:GameObject = new GameObject(s2d, px, ground-py);
 		new Sprite(newGround, newgroundtile, true);
 		//new RigidBody(newGround, -800, 0, false);
 		new RigidBody(newGround, 0, 0, false);
+		var beCollider:Collider = new BoxCollider(newGround, new Vector2(0, 0), newgroundtile.width, newgroundtile.height);
+		beCollider.isTrigger = true;
+		beCollider.colliderEvents.funcList.add(onground);
 	}
 
 	private function initGround() {
 		groundTiles = [Res.ground1.toTile(), Res.ground2.toTile()];
-		var dist = groundTiles[0].width;
+		var dist = groundTiles[0].width+1;
 		ground = s2d.height * 0.75;
 		var gx:Float = 0;
 		while (gx <= s2d.width) {
 			generateGround(gx, 0);
 			if (gx > 1200 && gx < 2000){
-				generateGround(gx, -150);
+				generateGround(gx, 150);
 			}
 			gx = gx + dist;
 			
@@ -99,7 +107,6 @@ class Main extends hxd.App {
 		initGround();
 		createDinosaur();
 		treetile = [Res.tree_1.toTile(), Res.tree_2.toTile(), Res.tree_3.toTile()];
-
 		Window.getInstance().addEventTarget(interpretEvent);
 		generateTime = Std.random(100) * 0.02;
 		timer1 = 0.0;
@@ -116,6 +123,9 @@ class Main extends hxd.App {
 			ColliderSystem.CheckCollide();
 			for (obj in UpdateList) {
 				obj.update(dt);
+			}
+			if (dinosaurCD.collidedWith.length == 0){
+				dinosaurRB.affectedByGravity = true;
 			}
 			if (dinosaur.obj.y > ground) {
 				dinosaur.obj.y = ground;
@@ -140,9 +150,15 @@ class Main extends hxd.App {
 			case EPush:
 				onMouseClick(event);
 			case EKeyUp:
-				dinosaurRB.velocity.x = 0;
+				onKeyRelease(event);
 				
 			case _:
+		}
+	}
+
+	public function onKeyRelease(event:hxd.Event) {
+		if (event.keyCode == Key.RIGHT || event.keyCode == (Key.LEFT)){
+			dinosaurRB.velocity.x = 0;
 		}
 	}
 
@@ -169,6 +185,7 @@ class Main extends hxd.App {
 				onJumping = 1;
 				dinosaurAnim.changeAnim("jump", dinosaurJump);
 				dinosaurRB.velocity.y = -1000;
+				dinosaurRB.affectedByGravity = true;
 			}
 		} else {
 			gameRun = true;
@@ -197,5 +214,14 @@ class Main extends hxd.App {
 		} else {
 			gameRun = false;
 		}
+	}
+
+	private function onground(c:Collider) {
+		// trace(c.GetCenter());
+		//trace(c.collidedWith.first().normal);
+		dinosaurRB.velocity.y = 0;
+		dinosaurRB.affectedByGravity = false;
+		dinosaurAnim.changeAnim("run", dinosaurRun);
+		onJumping = 0;
 	}
 }
