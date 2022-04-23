@@ -28,6 +28,7 @@ class Main extends hxd.App {
 	var gameRun:Bool = true;
 	var onJumping:Int = 0;
 	var groundcount:Int = 0;
+	var oriPos:Vector2=new Vector2(0,0);
 
 	static function main() {
 		Res.initEmbed();
@@ -49,13 +50,18 @@ class Main extends hxd.App {
 			tile.dx = tile.width/-2;
 			tile.dy = -tile.height;
 		 */
-		dinosaur = new GameObject(s2d, s2d.width * 0.25, ground);
+		dinosaur = new GameObject(s2d, s2d.width * 0.25, ground-500);
+		oriPos.x = dinosaur.obj.x;
+		oriPos.y = dinosaur.obj.y;
 		dinosaurAnim = new AnimationSprite(dinosaur, "run", dinosaurRun, 10, true);
 		// new Sprite(dinosaur, tile, false);
 		dinosaurRB = new RigidBody(dinosaur, 0, -1000, true);
 		var radV = (Math.abs(dinosaurRun[0].x) + Math.abs(dinosaurRun[0].y)) / 2;
 		// new CircleCollider(dinosaur, new Vector2(0,0), radV);
 		dinosaurCD = new BoxCollider(dinosaur, new Vector2(0, 0), Math.abs(dinosaurRun[0].x), Math.abs(dinosaurRun[0].y));
+		//var beCollider:Collider = new BoxCollider(dinasaur, new Vector2(0, 0), dinosaurRun[0].width, dinosaurRun[0].height);
+		dinosaurCD.isTrigger = true;
+		dinosaurCD.colliderEvents.funcList.add(onground);
 	}
 
 	private function generateTree(px:Float=0, py:Float=0, treespeed:Float=-800) {
@@ -83,19 +89,22 @@ class Main extends hxd.App {
 		//new RigidBody(newGround, -800, 0, false);
 		new RigidBody(newGround, 0, 0, false);
 		var beCollider:Collider = new BoxCollider(newGround, new Vector2(0, 0), newgroundtile.width, newgroundtile.height);
-		beCollider.isTrigger = true;
-		beCollider.colliderEvents.funcList.add(onground);
+		//beCollider.isTrigger = true;
+		//beCollider.colliderEvents.funcList.add(onground);
 	}
 
 	private function initGround() {
 		groundTiles = [Res.ground1.toTile(), Res.ground2.toTile()];
-		var dist = groundTiles[0].width+1;
+		var dist = groundTiles[0].width-1;
 		ground = s2d.height * 0.75;
 		var gx:Float = 0;
 		while (gx <= s2d.width) {
 			generateGround(gx, 0);
-			if (gx > 1200 && gx < 2000){
-				generateGround(gx, 150);
+			if (gx > 1000 && gx < 1800){
+				generateGround(gx, 75);
+			}
+			if (gx > 1800 && gx < 2800){
+				generateGround(gx, 225);
 			}
 			gx = gx + dist;
 			
@@ -107,23 +116,45 @@ class Main extends hxd.App {
 		initGround();
 		createDinosaur();
 		treetile = [Res.tree_1.toTile(), Res.tree_2.toTile(), Res.tree_3.toTile()];
-		Window.getInstance().addEventTarget(interpretEvent);
+		//Window.getInstance().addEventTarget(interpretEvent);
 		generateTime = Std.random(100) * 0.02;
 		timer1 = 0.0;
 	}
-
+	public function keyAction(){
+		if (Key.isDown(Key.RIGHT)){
+			trace('right');
+			dinosaurRB.velocity.x = 500;
+		}else if (Key.isDown(Key.LEFT)){
+			trace('left');
+			dinosaurRB.velocity.x = -500;
+		}else{
+			dinosaurRB.velocity.x *= 0.8; 
+		}
+		if (Key.isDown(Key.SPACE)){
+			if (onJumping == 0) {
+				onJumping = 1;
+				dinosaurAnim.changeAnim("jump", dinosaurJump);
+				dinosaurRB.velocity.y = -1000;
+				dinosaurRB.affectedByGravity = true;
+			}
+		}
+	}
+	
 	override function update(dt:Float) {
+		oriPos.x = dinosaur.obj.x;
+		oriPos.y = dinosaur.obj.y;
 		if (gameRun) {
 			//groundcount += 1;
 			//if (groundcount > 6) {
 			//	generateGround(s2d.width);
 			//	groundcount = 0;
 			//}
+			keyAction();
 			timer1 += dt;
-			ColliderSystem.CheckCollide();
 			for (obj in UpdateList) {
 				obj.update(dt);
 			}
+			ColliderSystem.CheckCollide();
 			if (dinosaurCD.collidedWith.length == 0){
 				dinosaurRB.affectedByGravity = true;
 			}
@@ -158,7 +189,10 @@ class Main extends hxd.App {
 
 	public function onKeyRelease(event:hxd.Event) {
 		if (event.keyCode == Key.RIGHT || event.keyCode == (Key.LEFT)){
-			dinosaurRB.velocity.x = 0;
+			dinosaurRB.velocity.x *= 0.8;
+			if (Math.abs(dinosaurRB.velocity.x) < 1) {
+				dinosaurRB.velocity.x = 0 ;
+			}
 		}
 	}
 
@@ -219,7 +253,10 @@ class Main extends hxd.App {
 	private function onground(c:Collider) {
 		// trace(c.GetCenter());
 		//trace(c.collidedWith.first().normal);
+		dinosaur.obj.x = oriPos.x;
+		dinosaur.obj.y = oriPos.y;
 		dinosaurRB.velocity.y = 0;
+		dinosaurRB.velocity.x = 0;
 		dinosaurRB.affectedByGravity = false;
 		dinosaurAnim.changeAnim("run", dinosaurRun);
 		onJumping = 0;
