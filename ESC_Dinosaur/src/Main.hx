@@ -58,7 +58,7 @@ class Main extends hxd.App {
 		dinosaurRB = new RigidBody(dinosaur, 0, -1000, true);
 		var radV = (Math.abs(dinosaurRun[0].x) + Math.abs(dinosaurRun[0].y)) / 2;
 		// new CircleCollider(dinosaur, new Vector2(0,0), radV);
-		dinosaurCD = new BoxCollider(dinosaur, new Vector2(0, 0), Math.abs(dinosaurRun[0].x), Math.abs(dinosaurRun[0].y));
+		dinosaurCD = new BoxCollider(dinosaur, new Vector2(0, 0), dinosaurRun[0].width, dinosaurRun[0].height);
 		//var beCollider:Collider = new BoxCollider(dinasaur, new Vector2(0, 0), dinosaurRun[0].width, dinosaurRun[0].height);
 		dinosaurCD.isTrigger = true;
 		dinosaurCD.colliderEvents.funcList.add(onground);
@@ -95,11 +95,15 @@ class Main extends hxd.App {
 
 	private function initGround() {
 		groundTiles = [Res.ground1.toTile(), Res.ground2.toTile()];
-		var dist = groundTiles[0].width-1;
+		for (i in 0...groundTiles.length) {
+			groundTiles[i].dx = groundTiles[i].width / -2;
+			groundTiles[i].dy = groundTiles[i].height / -2;
+		}
+		var dist = groundTiles[0].width;
 		ground = s2d.height * 0.75;
 		var gx:Float = 0;
 		while (gx <= s2d.width) {
-			generateGround(gx, 0);
+			//generateGround(gx, 0);
 			if (gx > 1000 && gx < 1800){
 				generateGround(gx, 75);
 			}
@@ -122,10 +126,10 @@ class Main extends hxd.App {
 	}
 	public function keyAction(){
 		if (Key.isDown(Key.RIGHT)){
-			trace('right');
+			//trace('right');
 			dinosaurRB.velocity.x = 500;
 		}else if (Key.isDown(Key.LEFT)){
-			trace('left');
+			//trace('left');
 			dinosaurRB.velocity.x = -500;
 		}else{
 			dinosaurRB.velocity.x *= 0.8; 
@@ -198,11 +202,11 @@ class Main extends hxd.App {
 
 	public function onKeyDown(event:hxd.Event) {
 		if (event.keyCode == Key.RIGHT){
-			trace('right');
+			//trace('right');
 			dinosaurRB.velocity.x = 500;
 		}
 		if (event.keyCode == (Key.LEFT)){
-			trace('left');
+			//trace('left');
 			dinosaurRB.velocity.x = -500;
 		}
 		if (event.keyCode == (Key.SPACE)){
@@ -252,11 +256,15 @@ class Main extends hxd.App {
 
 	private function onground(c:Collider) {
 		// trace(c.GetCenter());
-		//trace(c.collidedWith.first().normal);
-		dinosaur.obj.x = oriPos.x;
-		dinosaur.obj.y = oriPos.y;
+		trace("on");
+		for (item in c.collidedWith){
+			if (item.collider == dinosaur){
+				trace(item.normal, item.err,dinosaurRB.velocity.x);
+			}
+		}
+
 		dinosaurRB.velocity.y = 0;
-		dinosaurRB.velocity.x = 0;
+		//dinosaurRB.velocity.x = 0;
 		dinosaurRB.affectedByGravity = false;
 		dinosaurAnim.changeAnim("run", dinosaurRun);
 		onJumping = 0;

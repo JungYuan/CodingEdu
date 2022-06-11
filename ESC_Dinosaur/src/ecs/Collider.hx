@@ -1,5 +1,6 @@
 package ecs;
 
+import haxe.iterators.StringIteratorUnicode;
 import utils.ColliderSystem;
 import utils.Vector2;
 
@@ -13,7 +14,8 @@ class Collider extends Component{
     public var isTrigger : Bool = false;
     public var isStatic : Bool = false;
     public var center:Vector2;
-    public var collidedWith = new List<{collider: GameObject, normal: Vector2, err: Float}>();
+    //public var ttest = new Array<{collider: GameObject, normal: Vector2, err: String}>;
+    public var collidedWith = new List<{collider: GameObject, normal: Vector2, err: String}>();
     public var collideON : Vector2 = new Vector2(0,0);
     public var collidedByTeam : String;
     public var rb : RigidBody;
@@ -53,7 +55,7 @@ class Collider extends Component{
         return new Vector2(center.x + attachee.obj.x, center.y + attachee.obj.y);
     }
 
-    public function AddCollided(c:GameObject, normal:Vector2, err: Float){
+    public function AddCollided(c:GameObject, normal:Vector2, err: String){
         if(collidedWith.filter( function (cc) return cc.collider == c).length == 0){
             // enter
             collidedWith.add({collider: c, normal: normal, err: err});
@@ -69,7 +71,7 @@ class Collider extends Component{
     }
 
     public override function update(dt:Float) { // fixedUpdate() {
-        trace('cllider_update');
+        //trace('cllider_update');
         if(!isTrigger) {
             for(c in collidedWith){
                 var cc:Collider = cast(c.collider.GetComponent("Collider"), Collider);
@@ -79,9 +81,9 @@ class Collider extends Component{
         }
     }
 
-    private function ApplyPushBack(pv:Vector2, err: Float) {
+    private function ApplyPushBack(pv:Vector2, err: String) {
         if(hasRb && !rb.isTrigger){
-            rb.colliderNormals.add({n: pv, err: err});
+            //rb.colliderNormals.add({n: pv, err: err});
         }
     }
 }
